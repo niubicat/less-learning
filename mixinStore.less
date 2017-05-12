@@ -1,0 +1,600 @@
+// 变量(css value or css selectors or URLs or property names or variable name)
+// Lazy Loading, When defining a variable twice, the last definition of the variable is used
+@xxx: aaa;
+.@{xxx}{
+  color: red;
+}
+@images: "../img";
+.ban{
+  background: url("@{images}/white.jpg")
+}
+@themes: "../../src/themes";
+@import "@{themes}/tidal-wave.less";
+@property: color;
+.whdget {
+  @{property}: #0ee;
+  background-@{property}: #999;
+}
+@fnord: "I am fnord."
+@var: "fnord";
+content: @@var; // "I am fnord"
+@var: 0;
+.class1 {
+  @var: 1;
+  .class {
+    @var: 2;
+    three: @var;
+    @var: 3; // Lazy Loading, three: 3, one: 1;
+  }
+  one: @var;
+}
+// mixin 混合
+#a {
+  color: @xx
+  .b{
+    color: @xxx
+  }
+  &:before {
+    display:none;
+  }
+}
+// 运算
+@base: 5%;
+@filler: @base * 2;
+@other: @base + @filler;
+// 内置函数
+@width: 0.5;
+.class{
+  width: percentage(@width);
+}
+// 命名空间namespaces
+#bundle {
+  .button{}
+  .tab{}
+}
+#header a{
+  color: orange;
+  #bundle > .button;
+}
+// scope 作用域
+@var: red;
+#page {
+  @var: white;
+  #header {
+    color: @var; // white
+  }
+}
+// 注释
+/* 一个注释块
+style comment! */
+// 这一行被注释掉了！
+
+// import 导入
+@import "library"; //导入library.less
+@import "type.css";
+//extend 延伸，附加css value
+// Space between selector and extend is allowed: pre:hover :extend(div pre). == pre:hover:extend(div pre)
+nav ul { // 等价于 nav ul:extend(.inline) { background: blue;}
+  &:extend(.inline);
+  background: blue;
+}
+.inline {
+  color: red;
+} // 等价于下面
+
+nav ul {
+  background: blue;
+}
+nav ul, .inline {
+  color: red;
+} // 还有情况
+
+.c:extend(.d all) {} // extend all instance of "a" e.g.  ".x.d" or ".d.x"
+.d:extend(.f, .g) {} // 只延伸附加了两项
+.bucket {
+  color: blue;
+}
+@{variable}:extend(.bucket) {}
+@variable: .selector; // 等价于 .bucket, .seletor {color: blue;}
+// @media 这个scope作用域
+// Extend written inside a media declaration should match only selectors inside the same media declaration:
+@media print {
+  .screenClass:extend(.selector){}
+  .selector{
+    color: black;
+  }
+}
+.selector {
+  color: red;
+} // 等价于
+@media print {
+  .selector,
+  .screenClass {
+    color: black;
+  }
+} // 还有种情况， Extend written inside a media declaration does not match selectors inside nested declaration:
+@media screen {
+  .screenClass:extend(.selector) {} // extend inside media
+  @media (min-width: 1023px) {
+    .selector {  // ruleset inside nested media - extend ignores it
+      color: blue;
+    }
+  }
+} // 等价于下面
+@media screen and (min-width: 1023px) {
+  .selector { /* ruleset inside another nested media was ignored */
+    color: blue;
+  }
+} // 还有 Top level extend matches everything including selectors inside nested media:
+@media screen {
+  .selector{
+    color: red;
+  }
+  @media (min-width: 1023px) {
+    .selector {
+      color: blue;
+    }
+  }
+}
+.topLevel:extend(.selector) {} // 等价于下面
+@media screen {
+  .selector,
+  .topLevel {
+    color: red;
+  }
+}
+@media screen and (min-width: 1023px) {
+  .selector,
+  .topLevel {
+    color: blue;
+  }
+}
+li.list > a {
+  // list styles
+  color: red;
+}
+button.list-style {
+  &:extend(li.list > a); // use the same list styles
+} // 等价于下面
+button.list-style,
+li.list > a {
+  color: red;
+}
+// mixi 混合， "mix-in" properties from existing styles
+.a, #b {
+  color: red;
+}
+.mixin-class {
+  .a();
+}
+.mixi-id {
+  #b();
+} // 等价于下面
+.a, #b {
+  color: red;
+}
+.mixi-class {
+  color: red;
+}
+.mixin-id {
+  color: red;
+} // 有种情况If you want to create a mixin but you do not want that mixin to be output, you can put parenthesis after it.
+.my-mixin {
+  color: black;
+}
+.my-other-mixin() { // 加括号不会输出，如果要创建一个mixin，但是您不希望输出mixin，则可以在其后面加括号。
+  background: white;
+}
+.class {
+  .my-mixin;
+  .my-other-mixin;
+} // 等价于下面
+.my-mixin {
+  color: black;
+}
+.class {
+  color: black;
+  background: white;
+}
+// Selectors in mixins
+.my-hover-mixin() {
+  &:hover {
+    border: 1px solid red;
+  }
+}
+button {
+  .my-hover-mixin(); // 加括号不输出
+} // 等价于下面
+button:hover {
+  border: 1px solid red;
+} // 还有
+#outer {
+  .inner {
+    color: red;
+  }
+}
+
+.c {
+  #outer > .inner;
+}
+// The !important keyword . 在mixin调用后使用！important关键字将其继承的所有属性标记为！important：
+.foo(@bg: #fff, @color: #900) {
+  background: @bg;
+  color: @color;
+}
+.unimportant {
+  .foo(1);
+}
+.important {
+  .foo(2) !important;
+} // 等价于下面
+.unimportant {
+  background: #fff;
+  color: #900;
+}
+.important {
+  background: #fff !important;
+  color: #900 !important;
+}
+// 带参数的Mixin
+.border-radius(@radius) {
+  -webkit-border-radius: @radius;
+     -moz-border-radius: @radius;
+          border-radius: @radius;
+}
+#header {
+  .border-radius(4px);
+}
+.button {
+  .border-radius(6px);
+} // 还有
+.mixin(@color) {
+  color-1: @color;
+}
+.mixin(@color; @padding:2) {
+  color-2: @color;
+  padding-2: @padding;
+}
+.mixin(@color; @padding; @margin: 2) {
+  color-3: @color;
+  padding-3: @padding;
+  margin: @margin @margin @margin @margin;
+}
+.some .selector div {
+  .mixin(#008000);
+} // 等价于
+.some .selector div { // 全部参数实例话后就输出
+  color-1: #008000;
+  color-2: #008000;
+  padding-2: 2;
+}
+// The @arguments variable
+.box-shadow(@x: 0, @y: 0, @bur: 1px, @color: #000) {
+  -webkit-box-shadow: @arguments;
+   -moz-box-shadow: @arguments;
+        box-shadow: @arguments;
+}
+.big-block {
+  .box-shadow(2px, 5px);
+} // 等价于
+.big-block {
+  -webkit-box-shadow: 2px 5px 1px #000;
+     -moz-box-shadow: 2px 5px 1px #000;
+          box-shadow: 2px 5px 1px #000;
+}
+// Advanced arguments and the @rest variable
+.mixin(@a, @rest...){
+  //ssss
+}
+.mixin(...) {        // matches 0-N arguments
+.mixin() {           // matches exactly 0 arguments
+.mixin(@a: 1) {      // matches 0-1 arguments
+.mixin(@a: 1, ...) { // matches 0-N arguments
+.mixin(@a, ...) {    // matches 1-N arguments
+// 作为函数使用的Mixin
+@mixin() {
+  @width: 100%;
+  @height: 200px;
+}
+.caller {
+  .mixin();
+  width: @width;
+  height: @height;
+} // 等价于
+.caller {
+  width: 100%;
+  heigth: 200px;
+}
+// @import Import styles from other style sheets
+.foo {
+  background: #900;
+}
+@import "this-is-valid.less";
+// Import Options
+@import (reference) "foo.less";
+// Mixin Guards conditional mixin
+.mixin(@a) when (lightness(@a) >= 50%) {
+  background-color: black;
+}
+.mixin(@a) when (lightness(@a) <= 50%) {
+  background-color: white;
+}
+.mixin(@a) {
+  color: @a;
+}
+.class1 {
+  .mixin(#ddd);
+}
+.class2 {
+  .mixin(#555);
+} //等价于
+.class1 {
+  background-color: black;
+  color: #ddd;
+}
+.class2 {
+  background-color: white;
+  color: #555;
+}
+// Guard comparison operators 保卫比较运算符
+.mixin (@a) when (@a > 10), (@a < -10) { ... }
+@media: mobile;
+
+.mixin (@a) when (@media = mobile) { ... }
+.mixin (@a) when (@media = desktop) { ... }
+
+.max (@a, @b) when (@a > @b) { width: @a }
+.max (@a, @b) when (@a < @b) { width: @b }
+.mixin (@a, @b: 0) when (isnumber(@b)) { ... }
+.mixin (@a, @b: black) when (iscolor(@b)) { ... }
+.mixin (@a) when (isnumber(@a)) and (@a > 0) { ... }
+
+.my-optional-style() when (@my-option = true) { //卫士也可以应用于css选择器，它是语法糖，用于声明混音，然后立即呼叫。
+  button {
+    color: white;
+  }
+}
+.my-optional-style();
+button when (@my-option = true) {
+  color: white;
+}
+& when (@my-option = true) { //您还可以通过将此与＆功能组合来实现“if”类型语句，从而可以组合多个保护。
+  button {
+    color: white;
+  }
+  a {
+    color: blue;
+  }
+}
+// Loop 循环， 在 Less 中，mixin 可以被自己调用。
+//当这种递归形式的 mixin 与 Guard Expressions 和 Pattern Matching 一起联合使用的话，就可以创造出各种迭代/循环结构。
+.loop(@counter) when (@counter > 0) {
+  .loop((@counter -1));
+  .width: (10px * @counter);
+}
+div {
+  .loop(5)
+} // 输出
+div {
+  width: 10px;
+  width: 20px;
+  width: 30px;
+  width: 40px;
+  width: 50px;
+}
+// 生成 CSS 栅格类的递归循环的实例
+.generate-columns(@n, @i: 1) when (@i =< @n) {
+  .column-@{i} {
+    width: (@i * 100% / @n);
+  }
+  .generate-columns(@n, (@i + 1));
+}
+.column-1 {
+  width: 25%;
+}
+.column-2 {
+  width: 50%;
+}
+.column-3 {
+  width: 75%;
+}
+.column-4 {
+  width: 100%;
+}
+// Combine 合并 merge
+// 为了避免意外的合并，merge 需要在每个需要合并的属性名后面添加一个 + 以作标示。
+.mixin() {
+  box-shadow+: inset 0 0 10px #555;
+}
+.myclass {
+  .mixin();
+  box-shadow+: 0 0 20px black;
+} // 输出
+.myclass {
+  box-shadow: inset 0 0 10px #555, 0 0 20px black;
+}
+// 父选择符 &
+a {
+  color: blue;
+  &:hover {
+    color: green;
+  }
+} // 等价于
+a {
+  color: blue;
+}
+
+a:hover {
+  color: green;
+}
+// Multiple & 多重 &&
+// & may appear more then once within a selector.
+// This makes it possible to repeatedly refer to a parent selector without repeating its name.
+// ＆可能会在选择器中出现一次。 这使得可以重复地引用父选择器而不重复其名称。
+.link {
+  & + & {
+    color: red;
+  }
+
+  & & {
+    color: green;
+  }
+
+  && {
+    color: blue;
+  }
+
+  &, &ish {
+    color: cyan;
+  }
+} // 等价于
+.link + .link {
+  color: red;
+}
+.link .link {
+  color: green;
+}
+.link.link {
+  color: blue;
+}
+.link, .linkish {
+  color: cyan;
+}
+// Note that & represents all parent selectors (not just the nearest ancestor) so the following example:
+// 注意＆代表所有父选择器（不只是最近的祖先），所以下面的例子
+.grand {
+  .parent {
+    & > & {
+      color: red;
+    }
+
+    & & {
+      color: green;
+    }
+
+    && {
+      color: blue;
+    }
+
+    &, &ish {
+      color: cyan;
+    }
+  }
+} // 等价于
+.grand .parent > .grand .parent {
+  color: red;
+}
+.grand .parent .grand .parent {
+  color: green;
+}
+.grand .parent.grand .parent {
+  color: blue;
+}
+.grand .parent,
+.grand .parentish {
+  color: cyan;
+} //  还有 Changing selector order
+.header {
+  .menu {
+    border-radius: 5px;
+    .no-borderradius & {
+      background-image: url('images/button-background.png');
+    }
+  }
+} // 等价于
+.header .menu {
+  border-radius: 5px;
+}
+.no-borderradius .header .menu {
+  background-image: url('images/button-background.png');
+}
+// Combinatorial explosion 组合爆炸
+p, a, ul, li {
+border-top: 2px dotted #366;
+  & + & {
+      border-top: 0;
+  }
+} // 等价于
+p,
+a,
+ul,
+li {
+  border-top: 2px dotted #366;
+}
+p + p,
+p + a,
+p + ul,
+p + li,
+a + p,
+a + a,
+a + ul,
+a + li,
+ul + p,
+ul + a,
+ul + ul,
+ul + li,
+li + p,
+li + a,
+li + ul,
+li + li {
+  border-top: 0;
+}
+
+// Less 所有内置的函数
+// 杂项函数
+color("string") // 解析颜色，将代表颜色的字符串转换为颜色值
+color("#aaa"); // 输出： #aaa
+convert("", "") // 第一个参数为带单位的数值，第二个参数为单位。如果两个参数的单位是兼容的，则数字的单位被转换。如果两个参数的单位不兼容，则原样返回第一个参数。
+// 将资源内联进样式表，如果开启了 ieCompat 选项并且资源太大，
+// 或者此函数的运行环境为浏览器，则会回退到直接使用 url() 。
+// 如果没有指定 MIME，则 node 将使用 mime 包来决定正确的 mime 类型。
+data-uri("mimetype", "url")
+案例： data-uri('../data/image.jpg');
+
+输出： url('data:image/jpeg;base64,bm90IGFjdHVhbGx5IGEganBlZyBmaWxlCg==');
+
+浏览器端输出： url('../data/image.jpg');
+
+案例： data-uri('image/jpeg;base64', '../data/image.jpg');
+
+输出： url('data:image/jpeg;base64,bm90IGFjdHVhbGx5IGEganBlZyBmaWxlCg==');
+default() //仅在保护条件内可用，只有在没有其他mixin匹配时才返回true，否则为false。
+.mixin(1)                   {x: 11}
+.mixin(2)                   {y: 22}
+.mixin(@x) when (default()) {z: @x}
+
+div {
+  .mixin(3);
+}
+
+div.special {
+  .mixin(1);
+} // 输出：
+div {
+  z: 3;
+}
+div.special {
+  x: 11;
+}
+// 可以使用guard操作符默认返回的值。
+// 例如.mixin（）when not（default（））{}
+// 只有至少有一个mixin定义匹配mixin（）调用时才匹配：
+.mixin(@value) when (ispiexl(@value)) {
+  width: @value;
+}
+.mixin(@value) when not(default()) {
+  padding: (@value /5);
+}
+div-1 {
+  .mixin(100px);
+}
+div-2 {
+  .mixin(100%);
+} // 输出
+div-1 {
+  width: 100px;
+  padding: 20px;
+}
+div-2 {
+  // 没有至少一个匹配，没输出
+}

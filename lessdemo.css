@@ -1,0 +1,13 @@
+.some .selector div {
+  color-1: #008000;
+  color-2: #008000;
+  padding-2: 2;
+}
+.unimportant {
+  background: 1;
+  color: #900;
+}
+.important {
+  background: 2 !important;
+  color: #900 !important;
+}
